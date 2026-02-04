@@ -285,3 +285,72 @@ Each version represents a distinct state of your data, allowing you to:
 <Note title="System Operations">
 System operations like index updates and table compaction automatically increment the table version number. These background processes are tracked in the version history, though their version numbers are omitted from this example for clarity.
 </Note>
+
+## Cleanup and Storage Management
+
+While LanceDB's versioning system preserves old versions for time-travel and rollback capabilities, you'll eventually want to reclaim disk space by removing old versions. LanceDB provides safe cleanup operations with built-in protections.
+
+### Running Cleanup
+
+Use `optimize()` to clean up old versions along with other optimizations (compaction, index updates):
+
+```python
+from datetime import timedelta
+
+# Clean up versions older than 7 days (default)
+table.optimize()
+
+# Clean up versions older than 1 day
+table.optimize(cleanup_older_than=timedelta(days=1))
+
+# Remove all versions except the latest
+table.optimize(cleanup_older_than=timedelta(0))
+```
+
+For cleanup only (without compaction or index optimization), use `cleanup_old_versions()`:
+
+```python
+# Clean up versions older than the specified duration
+table.cleanup_old_versions(older_than=timedelta(days=7))
+```
+
+### The 7-Day Safety Default
+
+By default, LanceDB does not delete files that are newer than 7 days old, even if they belong to versions older than your `cleanup_older_than` threshold. This protection exists because:
+
+- **In-progress transactions**: Another process may be in the middle of a write operation
+- **Failed transactions**: Incomplete writes may leave files that appear to be part of ongoing work
+- **Recovery scenarios**: Recent files may be needed to recover from failures
+
+If you are certain no other processes are accessing the table and there are no in-progress transactions, you can override this protection:
+
+```python
+# Delete all files for old versions, including those newer than 7 days
+table.optimize(cleanup_older_than=timedelta(0), delete_unverified=True)
+```
+
+<Warning>
+Only use `delete_unverified=True` when you are sure no concurrent operations are running against the table.
+</Warning>
+
+### Concurrency and Safety Guarantees
+
+LanceDB cleanup operations are designed to be safe:
+
+| Guarantee | Description |
+|:----------|:------------|
+| **Latest version protected** | The current (latest) version is never removed, regardless of cleanup settings |
+| **Failure-safe** | If cleanup fails partway through, no data is corrupted and you can safely retry |
+| **Concurrent reads safe** | Other processes can continue reading while cleanup runs |
+| **Concurrent writes** | Updates, deletes, and compaction operations typically succeed during cleanup due to version isolation, but cleanup itself may be conservative or retry when it detects concurrent modifications |
+
+### Best Practices
+
+- **Run cleanup periodically** after many write operations to reclaim disk space
+- **Use default settings** (`delete_unverified=False`) in production environments with concurrent access
+- **Schedule during low-traffic periods** if possible, to minimize interaction with concurrent operations
+- **Monitor disk usage** to determine appropriate cleanup frequency for your workload
+
+<Note title="LanceDB Cloud">
+If you're using LanceDB Cloud, cleanup is managed automatically—you don't need to call these methods manually.
+</Note>
