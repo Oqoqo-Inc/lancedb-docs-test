@@ -520,15 +520,15 @@ Phrase matching enables you to search for exact sequences of words. Unlike regul
 which matches individual terms independently, phrase matching requires words to appear in the 
 specified order with no intervening terms. 
 
-<Note>
-Phrase queries are supported but only for a single column; providing multiple columns with a quoted phrase raises an error.
-</Note>
-
 Phrase matching is particularly useful for:
 
 - Searching for specific multi-word expressions
 - Matching exact titles or quotes  
 - Finding precise word combinations in a specific order
+
+<Note>
+Phrase queries are **single-column only** and cannot be used with `MultiMatchQuery`. If you need phrase matching across multiple columns, run separate `PhraseQuery` calls on each column and combine the results using a `BooleanQuery` with `Occur.Should`.
+</Note>
 
 <CodeGroup>
 ```python Python icon="python"
