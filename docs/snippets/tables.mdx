@@ -100,3 +100,5 @@ export const PyVersioningRollback = "# Let's roll back to before we added the ve
 
 export const PyVersioningUpdateData = "# Update author names to be more specific\ntable.update(where=\"author='Richard'\", values={\"author\": \"Richard Daniel Sanchez\"})\nrows_after_update = table.count_rows()\nprint(f\"Number of rows after update: {rows_after_update}\")\n";
 
+export const PyOptimizeDiskSpace = "from datetime import timedelta\n\n# Run all three operations with default 7-day retention\ntable.optimize()\n\n# Keep only versions from the last day\ntable.optimize(cleanup_older_than=timedelta(days=1))\n\n# Remove all old versions (keep only the latest)\ntable.optimize(cleanup_older_than=timedelta(0))\n";
+

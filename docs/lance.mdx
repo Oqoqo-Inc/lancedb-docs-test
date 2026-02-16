@@ -1,21 +1,19 @@
 ---
-title: "Lance format"
+
+title: "LanceDB format"
 sidebarTitle: "Lance format"
 description: "Open-source lakehouse format for multimodal AI."
 icon: "/static/assets/logo/lance-logo-gray.svg"
+
 ---
+
+import { PyOptimizeDiskSpace } from '/snippets/tables.mdx';
 
 [Lance](https://lance.org/) is an open-source lakehouse format, which provides the
 foundation for LanceDB's capabilities. Lance combines the performance of Apache Arrow with advanced
 features designed specifically for AI workloads.
 
-<Card
-  title="Lance format documentation"
-  icon="/static/assets/logo/lance-logo-gray.svg"
-  href="https://lance.org/quickstart"
->
-  Learn more about the Lance format by reading the docs.
-</Card>
+   Learn more about the Lance format by reading the docs.
 
 ## How Lance Enables the Multimodal Lakehouse
 
@@ -42,18 +40,15 @@ Cloud-native | Seamless integration with cloud object stores (S3, GCS, Azure Blo
 
 The following concepts are core to the Lance format:
 
-<Steps>
-  <Step>
+  
    Data storage is **columnar** and is **interoperable** with other columnar formats (such as Parquet) via Arrow
-  </Step>
-  <Step>
+  
+  
    Data is divided into **fragments** that represent a subset of the data. Fragments are chunks of data in a Lance dataset. Each fragment includes multiple files that contain several columns in the chunk of data that it represents.
-  </Step>
-  <Step>
+  
+  
    Data is **versioned**, with each insert operation creating a new version of the dataset and an update to the manifest that tracks versions via metadata
-  </Step>
-</Steps>
-
+  
 
 ### Data versioning
 
@@ -76,9 +71,10 @@ that need to be opened while scanning the dataset.
 ### Performance Optimization Through Compaction
 
 Compaction performs the following tasks in the background:
-
 - Removes deleted rows from fragments
+
 - Removes dropped columns from fragments
+
 - Merges small fragments into larger ones
 
 ### Data deletion and recovery
@@ -91,10 +87,29 @@ deleted from that fragment, it will not have a deletion file). This is important
 it means that the data is still there, and can be recovered if needed, as long as that version still
 exists based on your backup policy.
 
-<Card
-  title="Learn more about Lance"
-  icon="/static/assets/logo/lance-logo-gray.svg"
-  href="https://lance.org/quickstart"
->
-  Lance is a separate open source project. Check out its documentation to learn more.
-</Card>
+### Managing disk space
+
+Because Lance retains old versions and compaction creates new files, disk usage can grow significantly over time. To reclaim disk space, you need to remove old versions using the cleanup operation.
+
+**Compaction alone does not free disk space.** Compaction merges small files into larger ones for better read performance, but the old files remain until cleanup runs. If you're seeing unexpected disk growth, you likely need to run cleanup.
+
+In LanceDB OSS, use `table.optimize()` to manage disk space. This method performs three operations:
+
+| Operation | What it does | Disk effect |
+|---|---|---|
+| **Compaction** | Merges small fragments into larger files | May temporarily increase disk (creates new files before old ones are cleaned) |
+| **Cleanup** | Removes old versions beyond the retention period | Decreases disk by deleting old version files |
+| **Index optimization** | Updates indices with new data | Minimal disk impact |
+
+    
+    {PyOptimizeDiskSpace}
+    
+
+The `cleanup_older_than` parameter controls how long to retain old versions. The default is 7 days, which protects against cleaning up data that might be part of in-progress transactions.
+
+In LanceDB Cloud and Enterprise, `optimize()` is a no-op because table maintenance is handled automatically by the service. You don't need to manage disk space manually.
+
+   Lance is a separate open source project. Check out its documentation to learn more.
+
+</card
+</card

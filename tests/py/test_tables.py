@@ -1023,3 +1023,27 @@ def test_consistency_checkout_latest(tmp_db):
     # Check for updates
     tbl.checkout_latest()
     # --8<-- [end:consistency_checkout_latest]
+
+
+# ============================================================================
+# Disk Space Management Examples
+# ============================================================================
+
+
+def test_optimize_disk_space(tmp_db):
+    db = tmp_db
+    data = [{"vector": [1.1, 1.2], "item": "foo"}]
+    table = db.create_table("optimize_disk_space_example", data, mode="overwrite")
+
+    # --8<-- [start:optimize_disk_space]
+    from datetime import timedelta
+
+    # Run all three operations with default 7-day retention
+    table.optimize()
+
+    # Keep only versions from the last day
+    table.optimize(cleanup_older_than=timedelta(days=1))
+
+    # Remove all old versions (keep only the latest)
+    table.optimize(cleanup_older_than=timedelta(0))
+    # --8<-- [end:optimize_disk_space]
