@@ -100,3 +100,28 @@ export const PyVersioningRollback = "# Let's roll back to before we added the ve
 
 export const PyVersioningUpdateData = "# Update author names to be more specific\ntable.update(where=\"author='Richard'\", values={\"author\": \"Richard Daniel Sanchez\"})\nrows_after_update = table.count_rows()\nprint(f\"Number of rows after update: {rows_after_update}\")\n";
 
+export const TsVersioningBasicSetup = "// Connect to LanceDB\nconst db = await lancedb.connect(databaseDir);\n\n// Create a table with initial data\nconst data = [\n  { id: 1, author: \"Richard\", quote: \"Wubba Lubba Dub Dub!\" },\n  { id: 2, author: \"Morty\", quote: \"Rick, what's going on?\" },\n  { id: 3, author: \"Richard\", quote: \"I turned myself into a pickle, Morty!\" },\n];\n\nconst table = await db.createTable(\"quotes_versioning_example\", data, {\n  mode: \"overwrite\",\n});\n";
+
+export const TsVersioningCheckInitialVersion = "// View the initial version\nconst versions = await table.listVersions();\nconsole.log(`Number of versions after creation: ${versions.length}`);\nconsole.log(`Current version: ${await table.version()}`);\n";
+
+export const TsVersioningUpdateData = "// Update author names to be more specific\nawait table.update({\n  where: \"author = 'Richard'\",\n  values: { author: \"Richard Daniel Sanchez\" },\n});\nconst rowsAfterUpdate = await table.countRows();\nconsole.log(`Number of rows after update: ${rowsAfterUpdate}`);\n";
+
+export const TsVersioningAddData = "// Add more data\nconst moreData = [\n  { id: 4, author: \"Richard Daniel Sanchez\", quote: \"That's the way the news goes!\" },\n  { id: 5, author: \"Morty\", quote: \"Aww geez, Rick!\" },\n];\nawait table.add(moreData);\n";
+
+export const TsVersioningCheckVersionsAfterMod = "// Check versions after modifications\nconst versionsAfterMod = await table.listVersions();\nconst versionAfterMod = await table.version();\nconsole.log(`Number of versions after modifications: ${versionsAfterMod.length}`);\nconsole.log(`Current version: ${versionAfterMod}`);\n";
+
+export const TsVersioningListAllVersions = "// Let's see all versions\nconst allVersions = await table.listVersions();\nfor (const v of allVersions) {\n  console.log(`Version ${v.version}, created at ${v.timestamp}`);\n}\n";
+
+export const TsVersioningRollback = "// Roll back to a previous version\nawait table.checkout(versionAfterMod);\nawait table.restore();\n\n// Notice we have one more version now, not less!\nconst versionsAfterRollback = await table.listVersions();\nconsole.log(`Total number of versions after rollback: ${versionsAfterRollback.length}`);\n";
+
+export const TsVersioningCheckoutLatest = "// Go back to the latest version\nawait table.checkoutLatest();\n";
+
+export const TsVersioningDeleteData = "// Delete data from the table\nawait table.delete(\"author != 'Richard Daniel Sanchez'\");\nconst rowsAfterDeletion = await table.countRows();\nconsole.log(`Number of rows after deletion: ${rowsAfterDeletion}`);\n";
+
+export const RsVersioningBasicSetup = "// Connect to LanceDB\nlet db = connect(uri).execute().await.unwrap();\n\n// Create a table with initial data\nlet schema = quotes_schema();\nlet table = db\n    .create_table(\"quotes_versioning_example\", quotes_to_reader(schema))\n    .mode(CreateTableMode::Overwrite)\n    .execute()\n    .await\n    .unwrap();\n";
+
+export const RsVersioningCheckInitialVersion = "// View the initial version\nlet versions = table.list_versions().await.unwrap();\nprintln!(\"Number of versions after creation: {}\", versions.len());\nprintln!(\"Current version: {}\", table.version().await.unwrap());\n";
+
+export const RsVersioningListAllVersions = "// Let's see all versions\nlet all_versions = table.list_versions().await.unwrap();\nfor v in &all_versions {\n    println!(\"Version {}, created at {:?}\", v.version, v.timestamp);\n}\n";
+
+export const RsVersioningCheckoutLatest = "// Go back to the latest version\ntable.checkout_latest().await.unwrap();\n";
