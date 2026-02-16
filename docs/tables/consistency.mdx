@@ -64,9 +64,10 @@ By default, LanceDB will raise an error if it encounters a bad vector. You can
 also choose one of the following options:
 
 * `drop`: Ignore rows with bad vectors
-* `fill`: Replace bad values (NaNs) or missing values (too few dimensions) with
-    the fill value specified in the `fill_value` parameter. An input like
-    `[1.0, NaN, 3.0]` will be replaced with `[1.0, 0.0, 3.0]` if `fill_value=0.0`.
+* `fill`: Replace bad vectors with a vector where every element is the `fill_value`.
+    If any element is NaN or the vector has wrong dimensions, the **entire** vector
+    is replaced. For example, `[1.0, NaN, 3.0]` becomes `[0.0, 0.0, 0.0]` if
+    `fill_value=0.0` (the whole vector is replaced, not just the NaN elements).
 * `null`: Replace bad vectors with null (only works if the column is nullable).
     A bad vector `[1.0, NaN, 3.0]` will be replaced with `null` if the column is
     nullable. If the vector column is non-nullable, then bad vectors will cause an
