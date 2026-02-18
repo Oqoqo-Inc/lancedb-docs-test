@@ -223,8 +223,12 @@ Read more about scalar indices in the [Scalar Index](/indexing/scalar-index/) gu
 You may receive an HTTP 400 error from merge insert: `Bad request: Merge insert cannot be performed because the number of unindexed rows exceeds the maximum of 10000`. Verify that the scalar index on the join column is up to date before retrying.
 </Tip>
 
-<Note title="Embedding Functions">
-Like the create table and add APIs, the merge insert API will automatically compute embeddings if the table has an embedding definition in its schema. If the input data doesn't contain the source column, or the vector column is already filled, the embeddings won't be computed.
+<Note title="Embedding Functions and Incremental Ingestion">
+Like the create table and add APIs, the merge insert API will automatically compute embeddings if the table has an embedding definition in its schema. Embeddings are computed for each input row where the source column is present and the vector column is null or missing.
+
+**This means all rows in your input data may be re-embedded on every merge_insert call**, even if most rows already exist in the table. For incremental ingestion workflows, this can result in unexpected embedding API costs and latency.
+
+To avoid recomputing embeddings: pre-compute vectors and include the vector column explicitly in your input data before calling merge_insert. When the vector column is already populated, the embedding function is skipped.
 </Note>
 
 ### Upsert
