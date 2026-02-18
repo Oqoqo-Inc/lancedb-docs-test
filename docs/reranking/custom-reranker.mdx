@@ -18,6 +18,13 @@ first copy of the row encountered. This works well in cases that don't require t
 and full-text search to combine the results. If you want to use the scores or want to support
 `return_score="all"`, you'll need to implement your own merging algorithm.
 
+<Warning>
+Every reranker method (`rerank_hybrid`, `rerank_vector`, `rerank_fts`) **must** return a `pyarrow.Table` that includes a `_relevance_score` column of type `float32`. If this column is absent, LanceDB will raise a `ValueError` at query time. Note that `merge_results()` does **not** add this column — you must append it yourself, for example:
+```python
+result = result.append_column("_relevance_score", pa.array(scores, type=pa.float32()))
+```
+</Warning>
+
 Below, we show the pseudocode of a custom reranker that combines the results of semantic and full-text
 search using a linear combination of the scores:
 
@@ -36,24 +43,36 @@ class MyReranker(Reranker):
         # Use the built-in merging function
         combined_result = self.merge_results(vector_results, fts_results)
 
-        # Do something with the combined results
-        # ...
+        # Calculate relevance scores for each row (your scoring logic here)
+        scores = [...]  # one float per row
 
-        # Return the combined results
+        # REQUIRED: append _relevance_score column (float32)
+        combined_result = combined_result.append_column(
+            "_relevance_score", pa.array(scores, type=pa.float32())
+        )
+
         return combined_result
 
     def rerank_vector(self, query: str, vector_results: pa.Table):
-        # Do something with the vector results
-        # ...
+        # Calculate relevance scores for each row
+        scores = [...]  # one float per row
 
-        # Return the vector results
+        # REQUIRED: append _relevance_score column (float32)
+        vector_results = vector_results.append_column(
+            "_relevance_score", pa.array(scores, type=pa.float32())
+        )
+
         return vector_results
 
     def rerank_fts(self, query: str, fts_results: pa.Table):
-        # Do something with the FTS results
-        # ...
+        # Calculate relevance scores for each row
+        scores = [...]  # one float per row
 
-        # Return the FTS results
+        # REQUIRED: append _relevance_score column (float32)
+        fts_results = fts_results.append_column(
+            "_relevance_score", pa.array(scores, type=pa.float32())
+        )
+
         return fts_results
 ```
 </CodeGroup>
