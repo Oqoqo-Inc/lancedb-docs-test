@@ -217,8 +217,18 @@ Remove several columns at once for efficiency:
     </CodeBlock>
 </CodeGroup>
 
-<Warning title="Irreversible Column Deletion">
-Dropping columns cannot be undone. Make sure you have backups or are certain before removing columns.
+<Warning title="drop_columns is a Metadata-Only Operation">
+`drop_columns` updates the table schema but does **not** delete the underlying data from disk. The column data remains in `.lance` files and is still accessible via older table versions.
+
+To fully remove the data from storage, run `compact_files` followed by `cleanup_old_versions` after dropping the column:
+
+```python
+table.drop_columns(["sensitive_column"])
+table.compact_files()
+table.cleanup_old_versions()
+```
+
+
 </Warning>
 
 ## Vector Column Considerations
