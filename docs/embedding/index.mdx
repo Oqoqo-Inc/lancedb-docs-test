@@ -57,6 +57,52 @@ print(results)
 # 0                     This is a test.  [0.0123, -0.0456, ..., 0.0789]  0.123456
 # 1                     Another example.  [0.0234, -0.0567, ..., 0.0890]  0.234567
 ```
+```rust Rust icon="rust"
+use std::sync::Arc;
+use arrow_array::{RecordBatch, RecordBatchIterator, StringArray};
+use arrow_schema::{DataType, Field, Schema};
+use lancedb::connect;
+use lancedb::embeddings::{
+    sentence_transformers::SentenceTransformersEmbeddings,
+    EmbeddingDefinition, EmbeddingFunction,
+};
+
+async fn example() -> lancedb::Result<()> {
+    // Create the embedding function
+    let embedding = Arc::new(SentenceTransformersEmbeddings::builder().build()?);
+
+    // Connect to database
+    let db = connect("data/sample-lancedb").execute().await?;
+
+    // Register embedding function
+    db.embedding_registry()
+        .register("sentence-transformers", embedding.clone())?;
+
+    // Define schema with text field
+    let schema = Arc::new(Schema::new(vec![
+        Field::new("text", DataType::Utf8, false)
+    ]));
+
+    // Create table with embedding definition
+    let table = db
+        .create_empty_table("my_table", schema.clone())
+        .add_embedding(EmbeddingDefinition::new(
+            "text",
+            "sentence-transformers",
+            Some("vector"),
+        ))?
+        .execute()
+        .await?;
+
+    // Add data - embeddings generated automatically
+    let texts = StringArray::from(vec!["hello world", "goodbye world"]);
+    let batch = RecordBatch::try_new(schema.clone(), vec![Arc::new(texts)])?;
+    let reader = RecordBatchIterator::new(vec![Ok(batch)], schema);
+    table.add(Box::new(reader)).execute().await?;
+
+    Ok(())
+}
+```
 </CodeGroup>
 
 ### Using an embedding function
