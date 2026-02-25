@@ -75,6 +75,10 @@ const db = await connect(dbUri, {
 ```
 </CodeGroup>
 
+<Note title="OAuth / Bearer Token Authentication">
+For advanced authentication scenarios (SSO, service-to-service with rotating credentials), both Python and TypeScript SDKs support custom header providers including built-in OAuth support. See the [REST API Authentication](/api-reference/rest#oauth--bearer-token-authentication) docs for details.
+</Note>
+
 ## 3. Load Dataset
 
 For large datasets, the operation should be performed in batches to optimize memory usage.

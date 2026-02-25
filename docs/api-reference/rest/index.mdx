@@ -71,6 +71,58 @@ You can always check from the LanceDB Cloud Dashboard:
 That's it -- you're connected! Now, you can start adding data and querying it.
 You can visit the tutorial section to build your own applications with LanceDB.
 
+## OAuth / Bearer Token Authentication
+
+<Badge color="blue">Cloud</Badge>
+<Badge color="red">Enterprise</Badge>
+
+In addition to API key authentication, the Python and TypeScript SDKs support OAuth / Bearer token authentication via custom header providers. This is useful for SSO/IDP integration or service-to-service authentication with rotating credentials.
+
+<CodeGroup>
+```python Python icon=Python
+from lancedb.remote.header import OAuthProvider
+
+def fetch_token():
+    # Replace with your OAuth token endpoint
+    return {
+        "access_token": "your-oauth-token",
+        "expires_in": 3600,  # Token lifetime in seconds
+    }
+
+provider = OAuthProvider(
+    token_fetcher=fetch_token,
+    refresh_buffer_seconds=300,  # Refresh 5 min before expiry
+)
+
+db = lancedb.connect(
+    uri="db://your-database-uri",
+    header_provider=provider,
+)
+```
+
+```ts TypeScript icon=js
+import { connect } from "@lancedb/lancedb";
+import { OAuthHeaderProvider, TokenResponse } from "@lancedb/lancedb/header";
+
+async function fetchToken(): Promise<TokenResponse> {
+  // Replace with your OAuth token endpoint
+  return {
+    accessToken: "your-oauth-token",
+    expiresIn: 3600, // Token lifetime in seconds
+  };
+}
+
+const provider = new OAuthHeaderProvider(fetchToken, 300);
+await provider.refreshToken(); // Initialize the token
+
+const db = await connect("db://your-database-uri", {
+  headerProvider: provider,
+});
+```
+</CodeGroup>
+
+The `OAuthProvider` (Python) and `OAuthHeaderProvider` (TypeScript) automatically refresh tokens before they expire, using a configurable buffer (default: 5 minutes). You can also implement the `HeaderProvider` base class for custom authentication strategies.
+
 <Card
    title="Tutorials"
    icon="book"
