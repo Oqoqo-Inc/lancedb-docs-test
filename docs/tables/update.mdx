@@ -227,6 +227,17 @@ You may receive an HTTP 400 error from merge insert: `Bad request: Merge insert 
 Like the create table and add APIs, the merge insert API will automatically compute embeddings if the table has an embedding definition in its schema. If the input data doesn't contain the source column, or the vector column is already filled, the embeddings won't be computed.
 </Note>
 
+<Warning title="Memory Usage for Large Payloads">
+Merge insert uses an external sort internally and can exhaust available memory on large payloads. If you encounter memory-related crashes (e.g. errors referencing `sort_spill_reservation_bytes`), increase the memory pool via the `LANCE_MEM_POOL_SIZE` environment variable (value in bytes):
+
+```python
+import os
+os.environ["LANCE_MEM_POOL_SIZE"] = "2147483648"  # 2 GB
+```
+
+Set this before connecting to LanceDB. The default pool size is conservative; increasing it allows larger batch sizes without spilling to disk.
+</Warning>
+
 ### Upsert
 
 `upsert` updates rows if they exist and inserts them if they don't. To do this with merge insert, 
