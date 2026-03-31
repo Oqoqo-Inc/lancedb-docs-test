@@ -31,7 +31,7 @@ LanceDB supports three types of scalar indexes:
 |:----------------------------------------------------------------|:------------------------------------------|:-------------|
 | Numeric, String, Temporal                                       | `<`, `=`, `>`, `in`, `between`, `is null` | `BTREE`      |
 | Boolean, numbers or strings with fewer than 1,000 unique values | `<`, `=`, `>`, `in`, `between`, `is null` | `BITMAP`     |
-| List of low cardinality of numbers or strings                   | `array_has_any`, `array_has_all`          | `LABEL_LIST` |
+| List of low cardinality of numbers or strings                   | `array_contains_any`, `array_contains_all`          | `LABEL_LIST` |
 
 ## Scalar Index Operations
 
